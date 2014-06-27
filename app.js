@@ -17,6 +17,15 @@ $(document).ready( function() {
 	});
 });
 
+var showAnswer = function(answer) {
+
+	var result = $('.templates .top-answers').clone();
+
+	// set the score
+	var scoreElem = result.find('.score');
+	scoreElem.text(answer.score);
+	console.log(answer.score);
+}
 // this function takes the question object returned by StackOverflow 
 // and creates new result to be appended to DOM
 var showQuestion = function(question) {
@@ -76,6 +85,11 @@ var getTopAnswer = function(answer) {
 	})
 	.done(function(result){
 		console.log(result.items);
+		$.each(result.items, function(i, item) {
+			console.log(item);
+			var answer = showAnswer(item);
+			$('.results').append(answer);
+		});
 	})
 	.fail(function(jqXHR, error, errorThrown){
 		var errorElem = showError(error);
