@@ -12,8 +12,9 @@ $(document).ready( function() {
 		$('.results').html('');
 
 		// get the value of the answer tag the user sumbitted
-		var answer = $(this).find("input[name='answers']").val();
-		getTopAnswer(answer);
+		var answerQuery = $(this).find("input[name='answers']").val();
+		console.log(answerQuery);
+		getTopAnswer(answerQuery);
 	});
 });
 
@@ -24,7 +25,12 @@ var showAnswer = function(answer) {
 	// set the score
 	var scoreElem = result.find('.score');
 	scoreElem.text(answer.score);
-	console.log(answer.score);
+
+	// set the user name
+	var usernameElem = result.find('.username a');
+	usernameElem.attr("href", answer.user.link);
+	usernameElem.text(answer.user.display_name);
+	return result;
 }
 // this function takes the question object returned by StackOverflow 
 // and creates new result to be appended to DOM
@@ -76,7 +82,8 @@ var showError = function(error){
 
 var getTopAnswer = function(answer) {
 	var request = {site: 'stackoverflow'};
-
+	var x = typeof answer;
+	console.log(x);
 	var result = $.ajax({
 		url: "http://api.stackexchange.com/2.2/tags/" + answer + "/top-answerers/all_time",
 		data: request,
@@ -84,11 +91,9 @@ var getTopAnswer = function(answer) {
 		type: "GET",
 	})
 	.done(function(result){
-		console.log(result.items);
 		$.each(result.items, function(i, item) {
-			console.log(item);
-			var answer = showAnswer(item);
-			$('.results').append(answer);
+			var resultElem = showAnswer(item);
+			$('.results').append(resultElem);
 		});
 	})
 	.fail(function(jqXHR, error, errorThrown){
