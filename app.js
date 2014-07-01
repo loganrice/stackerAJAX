@@ -6,8 +6,32 @@ $(document).ready( function() {
 		var tags = $(this).find("input[name='tags']").val();
 		getUnanswered(tags);
 	});
+
+	$(".inspiration-getter").submit( function(event){
+		// zero out results if previous search has run
+		$('.results').html('');
+
+		// get the value of the answer tag the user sumbitted
+		var answerQuery = $(this).find("input[name='answers']").val();
+		console.log(answerQuery);
+		getTopAnswer(answerQuery);
+	});
 });
 
+var showAnswer = function(answer) {
+
+	var result = $('.templates .top-answers').clone();
+
+	// set the score
+	var scoreElem = result.find('.score');
+	scoreElem.text(answer.score);
+
+	// set the user name
+	var usernameElem = result.find('.username a');
+	usernameElem.attr("href", answer.user.link);
+	usernameElem.text(answer.user.display_name);
+	return result;
+}
 // this function takes the question object returned by StackOverflow 
 // and creates new result to be appended to DOM
 var showQuestion = function(question) {
@@ -56,6 +80,29 @@ var showError = function(error){
 	errorElem.append(errorText);
 };
 
+var getTopAnswer = function(answer) {
+	var request = {site: 'stackoverflow'};
+	var x = typeof answer;
+	console.log(x);
+	var result = $.ajax({
+		url: "http://api.stackexchange.com/2.2/tags/" + answer + "/top-answerers/all_time",
+		data: request,
+		dataType: "jsonp",
+		type: "GET",
+	})
+	.done(function(result){
+		$.each(result.items, function(i, item) {
+			var resultElem = showAnswer(item);
+			$('.results').append(resultElem);
+		});
+	})
+	.fail(function(jqXHR, error, errorThrown){
+		var errorElem = showError(error);
+		$('.search-results').append(errorElem);
+		console.log("something failed");
+	});
+};
+
 // takes a string of semi-colon separated tags to be searched
 // for on StackOverflow
 var getUnanswered = function(tags) {
@@ -65,13 +112,14 @@ var getUnanswered = function(tags) {
 								site: 'stackoverflow',
 								order: 'desc',
 								sort: 'creation'};
-	
+
 	var result = $.ajax({
 		url: "http://api.stackexchange.com/2.2/questions/unanswered",
 		data: request,
 		dataType: "jsonp",
 		type: "GET",
 		})
+
 	.done(function(result){
 		var searchResults = showSearchResults(request.tagged, result.items.length);
 
